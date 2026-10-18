@@ -37,6 +37,17 @@ export interface ExitRules {
   outBelowMaxMin: number;
 }
 
+/** Paper-trading model carried by DRY_RUN positions (backend/src/modules/strategy/domain/paper-sim.ts). */
+export interface PaperState {
+  depositSol: number;
+  priceTop: number;
+  binStep: number;
+  bins: number;
+  shape: "Spot" | "Curve" | "BidAsk";
+  feesSol: number;
+  lastTickAt: number;
+}
+
 export interface Position {
   positionPubkey: string;
   poolAddress: string;
@@ -49,6 +60,9 @@ export interface Position {
   binStep?: number;
   decidedBy?: "ai" | "rules";
   confidence?: number;
+  solIsX?: boolean;
+  entryPriceSol?: number;
+  entryActiveBinId?: number;
   minBinId: number;
   maxBinId: number;
   depositSol: number;
@@ -62,7 +76,7 @@ export interface Position {
   lastFeesSol?: number;
   lastDepth?: number;
   lastCheckedAt?: number;
-  paper?: unknown;
+  paper?: PaperState;
 }
 
 export interface Snapshot {
@@ -195,6 +209,44 @@ export interface OnchainPosition {
   valueSol: number;
 }
 
+/** GET /api/positions/:pubkey/chart, mirrors backend/src/modules/positions/application/position-chart.use-case.ts. */
+export interface PositionChartPoint {
+  t: number;
+  /** Token price in SOL (pool quote token). */
+  priceSol: number;
+  /** 0 = top of range, 1 = bottom; <0 above, >1 below. */
+  depth: number;
+}
+
+export interface PositionChartSimRow {
+  dropPct: number;
+  valueSol: number;
+  pnlPct: number;
+  filledPct: number;
+}
+
+export interface PositionChart {
+  positionPubkey: string;
+  poolAddress: string;
+  poolName: string;
+  shape: "Spot" | "Curve" | "BidAsk";
+  binStep: number;
+  bins: number;
+  rangePct: number;
+  minBinId: number;
+  maxBinId: number;
+  entryPriceSol: number;
+  entryDepth: number;
+  priceTopSol: number;
+  priceBotSol: number;
+  depositSol: number;
+  feeTvl24hPct: number | null;
+  feePerDaySol: number;
+  candles: PositionChartPoint[];
+  rows: PositionChartSimRow[];
+  at: number;
+}
+
 /** Row of GET /api/positions `closed`. */
 export interface ClosedPosition {
   position: Position;
@@ -209,12 +261,13 @@ export interface SettingView {
   env: string;
   label: string;
   help: string;
-  type: "number" | "integer" | "boolean" | "list";
+  type: "number" | "integer" | "boolean" | "list" | "choice";
   unit?: string;
   min?: number;
   max?: number;
-  value: number | boolean | string[];
-  envValue: number | boolean | string[];
+  options?: { value: string; label: string }[];
+  value: number | boolean | string | string[];
+  envValue: number | boolean | string | string[];
   overridden: boolean;
 }
 

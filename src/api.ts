@@ -4,6 +4,7 @@ import type {
   JournalEntry,
   OnchainPosition,
   Position,
+  PositionChart,
   PositionIl,
   SettingsView,
   WalletBalance,
@@ -77,6 +78,8 @@ export const api = {
     request<{ open: Position[]; closed: ClosedPosition[] }>(`/api/positions?closedLimit=${closedLimit}`),
   onchainPositions: () => request<{ positions: OnchainPosition[] }>("/api/positions/onchain"),
   ilPositions: () => request<{ positions: PositionIl[]; at: number }>("/api/positions/il"),
+  positionChart: (pubkey: string) =>
+    request<PositionChart>(`/api/positions/${encodeURIComponent(pubkey)}/chart`),
   setOpeningPaused: (paused: boolean) =>
     request<{ status: BotStatus }>("/api/opening", { method: "POST", body: JSON.stringify({ paused }) }),
   closePosition: (pubkey: string) =>

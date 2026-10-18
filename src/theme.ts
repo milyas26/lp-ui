@@ -17,15 +17,23 @@ export function useTheme(): [Theme, (t: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(read);
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    // Browser chrome matches the top bar surface.
-    const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#111113" : "#FFFFFF");
+    // shadcn's dark: variants key off a .dark class; styles.css keys off data-theme.
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const dark = theme === "dark" || (theme === "system" && mq.matches);
+      document.documentElement.classList.toggle("dark", dark);
+      // Browser chrome matches the top bar surface.
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#0B0C0E" : "#FFFFFF");
+    };
+    apply();
+    mq.addEventListener("change", apply);
     try {
       if (theme === "light") localStorage.removeItem(KEY);
       else localStorage.setItem(KEY, theme);
     } catch {
       // Storage blocked: the choice lasts for this visit only.
     }
+    return () => mq.removeEventListener("change", apply);
   }, [theme]);
   return [theme, setTheme];
 }

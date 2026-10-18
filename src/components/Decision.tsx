@@ -7,6 +7,9 @@ import type {
   Step,
 } from "../types";
 import { STRATEGY_LABEL, SHAPE_LABEL, clock, duration, pct, sol, usd, useNow } from "../format";
+import { Disclosure } from "@/components/Disclosure";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 /** Latest cycle that reached the AI decision step, newest first. `finished` skips one still running. */
 export function latestAiStep(cycles: Cycle[], finished = false): { cycle: Cycle; step: Step } | undefined {
@@ -42,10 +45,9 @@ function Running({ cycle, step, alone }: { cycle: Cycle; step: Step; alone: bool
         </span>
       </p>
       {step.children.length > 0 && (
-        <details className="disclosure decision__trace" open={alone}>
-          <summary>Lihat langkah yang sedang berjalan ({step.children.length})</summary>
+        <Disclosure className="disclosure decision__trace" defaultOpen={alone} title={<>Lihat langkah yang sedang berjalan ({step.children.length})</>}>
           <Trace steps={step.children} />
-        </details>
+        </Disclosure>
       )}
     </div>
   );
@@ -114,10 +116,7 @@ function Verdict({ step, decision }: { step: Step; decision?: DecisionData }) {
 function BinStepCompare({ data, chosen, maxBins }: { data: BinStepData; chosen?: string; maxBins: number }) {
   const scale = Math.max(maxBins, ...data.rows.map((r) => r.bins));
   return (
-    <section className="compare" aria-labelledby="compare-title">
-      <h4 id="compare-title" className="sub-title">
-        Bin step dibandingkan untuk range -{Math.round(data.rangePct)}%
-      </h4>
+    <Disclosure className="disclosure compare" title={<>Bin step dibandingkan untuk range -{Math.round(data.rangePct)}% ({data.rows.length} pool)</>}>
       <ul className="compare__list">
         {data.rows.map((r) => {
           const picked = r.address === chosen;
@@ -152,17 +151,14 @@ function BinStepCompare({ data, chosen, maxBins }: { data: BinStepData; chosen?:
         })}
       </ul>
       <p className="compare__legend muted">Garis tegak = batas {maxBins} bin per posisi.</p>
-    </section>
+    </Disclosure>
   );
 }
 
 function Simulation({ data }: { data: SimulationData }) {
   return (
-    <details className="disclosure sim">
-      <summary>
-        Simulasi {SHAPE_LABEL[data.shape] ?? data.shape} -{data.rangePct}%, {sol(data.sizeSol, 2)} di bin step{" "}
-        {data.binStep}
-      </summary>
+    <Disclosure className="disclosure sim" title={<>Simulasi {SHAPE_LABEL[data.shape] ?? data.shape} -{data.rangePct}%, {sol(data.sizeSol, 2)} di bin step{" "}
+        {data.binStep}</>}>
       <table className="sim__table">
         <caption className="visually-hidden">Nilai posisi kalau harga turun, sebelum fee</caption>
         <thead>
@@ -187,7 +183,7 @@ function Simulation({ data }: { data: SimulationData }) {
       <p className="muted">
         Sebelum fee. Estimasi fee {data.feePerDaySol} SOL per hari selama harga di dalam range.
       </p>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -231,26 +227,26 @@ export function DecisionCard({ snapshot, cycles }: Props) {
 
   if (snapshot.decisionMode !== "ai") {
     return (
-      <section className="card decision" aria-labelledby="decision-title">
+      <Card role="region" className="panel decision" aria-labelledby="decision-title">
         <div className="card__head">
           <h2 id="decision-title" className="card__title">Keputusan entry</h2>
-          <span className="chip chip--plain">Rule engine</span>
+          <Badge variant="outline">Rule engine</Badge>
         </div>
         <p>
           AI tidak aktif, jadi pool, bin step, range, dan size dipilih oleh rule engine playbook. Rinciannya ada di
           langkah "Analisa kandidat".
         </p>
         <p className="muted">Isi DEEPSEEK_API_KEY di backend/.env lalu jalankan ulang backend untuk menyalakan AI.</p>
-      </section>
+      </Card>
     );
   }
 
   if (!found) {
     return (
-      <section className="card decision" aria-labelledby="decision-title">
+      <Card role="region" className="panel decision" aria-labelledby="decision-title">
         <div className="card__head">
           <h2 id="decision-title" className="card__title">Keputusan AI</h2>
-          <span className="chip chip--plain">{snapshot.llm}</span>
+          <Badge variant="outline">{snapshot.llm}</Badge>
         </div>
         {running && <Running cycle={running.cycle} step={running.step} alone />}
         <p>Belum ada keputusan selesai sejak backend dinyalakan.</p>
@@ -258,7 +254,7 @@ export function DecisionCard({ snapshot, cycles }: Props) {
           AI dipanggil setelah screening menemukan kandidat dan ada slot serta budget. Kalau izin buka posisi tertutup,
           alasannya ada di langkah "Cek izin buka posisi baru".
         </p>
-      </section>
+      </Card>
     );
   }
 
@@ -270,10 +266,10 @@ export function DecisionCard({ snapshot, cycles }: Props) {
   const rounds = roundsOf(step);
 
   return (
-    <section className="card decision" aria-labelledby="decision-title">
+    <Card role="region" className="panel decision" aria-labelledby="decision-title">
       <div className="card__head">
         <h2 id="decision-title" className="card__title">Keputusan AI</h2>
-        <span className="chip chip--plain">{snapshot.llm}</span>
+        <Badge variant="outline">{snapshot.llm}</Badge>
       </div>
       {running && <Running cycle={running.cycle} step={running.step} alone={false} />}
       <p className="decision__when muted">
@@ -288,13 +284,10 @@ export function DecisionCard({ snapshot, cycles }: Props) {
       {sim && <Simulation data={sim} />}
 
       {step.children.length > 0 && (
-        <details className="disclosure decision__trace">
-          <summary>
-            Jejak keputusan: {rounds} putaran, {step.children.filter((c) => c.key !== "think").length} langkah data
-          </summary>
+        <Disclosure className="disclosure decision__trace" title={<>Jejak keputusan: {rounds} putaran, {step.children.filter((c) => c.key !== "think").length} langkah data</>}>
           <Trace steps={step.children} />
-        </details>
+        </Disclosure>
       )}
-    </section>
+    </Card>
   );
 }

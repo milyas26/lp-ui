@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { API_BASE, setToken } from "../api";
 import type { Link } from "../useBot";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 /** Full-screen states shown before the first data arrives. */
 export function LinkGate({ link, onRetry }: { link: Link; onRetry: () => void }) {
@@ -22,10 +25,10 @@ export function LinkGate({ link, onRetry }: { link: Link; onRetry: () => void })
             onRetry();
           }}
         >
-          <label htmlFor="gate-token" className="visually-hidden">
+          <Label htmlFor="gate-token" className="sr-only">
             Token API
-          </label>
-          <input
+          </Label>
+          <Input
             id="gate-token"
             type="password"
             autoComplete="off"
@@ -34,9 +37,7 @@ export function LinkGate({ link, onRetry }: { link: Link; onRetry: () => void })
             placeholder="API_TOKEN"
             required
           />
-          <button type="submit" className="btn btn--primary">
-            Hubungkan
-          </button>
+          <Button type="submit">Hubungkan</Button>
         </form>
       </div>
     );
@@ -50,9 +51,9 @@ export function LinkGate({ link, onRetry }: { link: Link; onRetry: () => void })
           Dashboard tidak mendapat jawaban dari backend di <span className="mono">{where}/api</span>. Pastikan
           backend jalan (<span className="mono">npm start</span> di folder backend, atau container lp-agent hidup).
         </p>
-        <button type="button" className="btn btn--primary" onClick={onRetry}>
+        <Button type="button" onClick={onRetry}>
           Coba hubungkan lagi
-        </button>
+        </Button>
       </div>
     );
   }

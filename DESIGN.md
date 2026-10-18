@@ -9,8 +9,9 @@ Referensi style: hasil inspeksi live situs referensi (via BrowserOS neo, 12 Okt 
 
 ## 1. Karakter Umum
 
-- **Karakter visual:** clean, airy, "friendly fintech". Banyak ruang kosong, sudut super bulat (rounded), surface abu sangat muda di atas background putih, satu foto hangat sebagai aksen.
+- **Karakter visual:** clean, crisp, "modern fintech". Banyak ruang kosong, sudut bulat konsisten, surface abu **cool** di atas background putih, satu aksen **emerald**.
 - **Tone copy:** casual, sapaan waktu ("Selamat sore."), sentence case (bukan Title Case), hangat & personal.
+- **Dial:** ENERGY 2 / RHYTHM 1 / MOTION 1 (alat mantau harian, tetap kalem).
 
 ## 2. Tipografi
 
@@ -37,27 +38,29 @@ Font system stack (native-feel, bukan webfont custom):
 
 Palet kecil, disiplin. Hampir semua UI = netral; warna hanya untuk aksen & kategori.
 
-### Netral
+### Netral (cool grey)
 | Token | Nilai | Pakai di |
 |---|---|---|
 | `--bg` / page | `#FFFFFF` | background utama |
-| `--surface` | `#F5F5F7` | kartu, sidebar item aktif, chip, tombol sekunder |
-| `--surface-2` | `#ECECEF` / `#E3E3E7` | divider, sel kalender |
-| `--text` | `#171717` | teks utama (bukan hitam pekat) |
-| `--text-muted` | `#6B6B70` | label, meta, caption |
-| `--text-faint` | `rgba(23,23,23,0.66)` | teks sekunder tambahan |
-| `--ink` | `#171717` | tombol primer (bg hitam) |
+| `--surface` | `#F5F7F9` | kartu, chip, tombol sekunder |
+| `--surface-2` | `#ECEFF2` | divider, panel inset |
+| `--border` | `#E3E7EB` | garis pemisah, border kartu |
+| `--text` | `#0B0D10` | teks utama (near-black cool) |
+| `--muted` | `#646A73` | label, meta, caption |
+| `--ink` | `#0E1013` | tombol primer (bg ink) |
 
-### Aksen
+### Aksen (satu warna)
 | Token | Nilai | Pakai |
 |---|---|---|
-| `--brand-brown` | `#B07A4F` | aksen hangat, donut chart |
-| `--brand-brown-tint` | `rgba(176,122,79,0.14)` | badge/ikon background |
-| `--accent-green` | `#1E9E4A` (rgb 30,158,74) | sukses, saldo positif, sparkline |
-| `--danger` | `#E11D48` (rose) | nominal negatif, pengeluaran |
+| `--brand` (emerald) | `#00A37A` | aksen tunggal: brand, profit positif, meter |
+| `--brand-text` | `#0A7A5C` | teks aksen di atas putih (AA) |
+| `--brand-tint` | `rgba(0,163,122,0.12)` | badge/ikon background |
+| `--up` | `#12A150` | profit |
+| `--down` | `#E5484D` | loss |
+| `--danger-fill` | `#C62B32` | tombol destructive (teks putih AA) |
+| `--ai` (indigo) | `#6366F1` | hanya menandai AI |
 
-### Warna kategori (tint `alpha 0.13` untuk background, warna solid untuk teks/ikon)
-`#F0892E` orange · `#14B8A6` teal · `#3B82F6` blue · `#F59E0B` amber · `#0EA5E9` sky · `#E11D48` rose · `#6D6AF0` indigo (tint `#D1D2F5`)
+Dark mode: canvas `#0B0C0E`, surface `#15171A`, emerald `#10B981`, teks `#F2F3F5`.
 
 Pola konsisten: **background kategori = warna yang sama dengan alpha 0.13**, bukan pastel hardcoded. Gampang di-generate dari satu hex.
 
@@ -69,21 +72,18 @@ Pola konsisten: **background kategori = warna yang sama dengan alpha 0.13**, buk
 | Radius elemen dalam | 14–18px |
 | Radius pill / chip / tombol | `999px` |
 | Radius kecil | 3px (badge mini) |
-| Shadow (satu-satunya) | `rgba(40,60,110,0.1) 0px 4px 16px` |
+| Shadow (satu-satunya) | `0 1px 2px rgba(16,24,40,.06), 0 4px 14px rgba(16,24,40,.05)` |
 
-- Shadow sangat halus, warna kebiruan (bukan hitam), blur lebar 16px. Nyaris semua flat.
+- Shadow sangat halus, netral-cool (bukan hitam). Nyaris semua flat; cuma elemen yang benar-benar naik yang dikasih shadow (R-12).
 - Hampir semua elemen interaktif = pill (`border-radius: 999px`).
 
 ## 5. Layout
 
-- **Shell:** sidebar kiri fixed (~250px) + area konten.
-- **Sidebar:** brand di atas (logo + nama), lalu grup nav dengan label kecil muted:
-  - `Keuangan`: Ringkasan, Transaksi, Laporan, Anggaran, Dompet
-  - `Fitur`: Streak, Oyenku, Ikuti uangmu, Kekayaan, Kanvas, Peta Oyen, Transit
-  - Bottom: kartu upsell Pro, CTA primer "Tambah transaksi", baris akun + status sync.
-- **Item nav aktif:** pill `--surface` (#F5F5F7), bukan border/warna. Ikon kiri, teks 15px weight 600.
-- **Konten:** judul halaman besar kiri-atas; tombol aksi kanan-atas (pill). Grid: kolom utama lebar + "right rail" kartu ringkas di kanan untuk layar lebar.
-- **Hero:** kartu lebar dengan foto (bukan gradient CSS) + overlay teks & input search (pill putih translusen, tombol submit bulat hitam). Radius ~24px.
+- **Shell:** topbar tipis (brand, wallet, status, aksi), lalu satu halaman **Command Center** yang scroll natural (tanpa sidebar).
+- **Hero:** satu kartu focal berisi angka besar (hasil hari ini) + metrik pendukung (modal, slot posisi, harga SOL, posisi ditutup). Satu-satunya elemen yang pakai shadow.
+- **Body:** dua kolom. Kiri (lebar): **Posisi** (utama) lalu **Keputusan AI**. Kanan (rail): **Aktivitas**.
+- **Di bawah hero:** stepper siklus interaktif, 6 langkah bernomor yang bisa diklik, langkah aktif berdenyut halus. Klik langkah menampilkan detailnya; rincian lengkap lewat disclosure.
+- **Mobile:** kolom menumpuk (hero, stepper, posisi, keputusan, aktivitas); metrik hero jadi 2 kolom; label stepper disembunyikan (nomor + detail terpilih saja); baris posisi bertumpuk.
 
 ## 6. Komponen Kunci
 
@@ -106,9 +106,9 @@ Pola konsisten: **background kategori = warna yang sama dengan alpha 0.13**, buk
 - Kartu fitur: judul + angka besar + mini bar-chart hijau (sparkline batang).
 
 **Data viz (custom, minimalis)**
-- Donut: ring tebal, warna tunggal `--brand-brown`, teks di tengah.
-- Heatmap kalender: sel rounded, intensitas via tint ungu bertingkat, hari ini di-highlight penuh.
-- Line chart: satu garis aksen ungu (`#6D6AF0`) + tooltip pill hitam. Grid nyaris tak terlihat.
+- Donut: ring tebal, warna tunggal `--brand` (emerald), teks di tengah.
+- Heatmap kalender: sel rounded, intensitas via tint emerald bertingkat, hari ini di-highlight penuh.
+- Line chart: satu garis aksen emerald (`#00A37A`) + tooltip pill ink. Grid nyaris tak terlihat.
 
 ## 7. Prinsip yang bisa dicontek
 
@@ -117,7 +117,7 @@ Pola konsisten: **background kategori = warna yang sama dengan alpha 0.13**, buk
 3. **Surface muda di atas putih** (`#F5F5F7`) sebagai pengganti border — murah, bersih.
 4. **Type scale kecil tapi kontras:** body 15–16px, heading 40px weight 600, tracking negatif.
 5. **Teks near-black `#171717`**, muted `#6B6B70` — jangan pakai hitam murni / abu generic.
-6. **Satu hero fotogenik** (hangat/terracotta) sebagai titik emosional, sisanya netral.
+6. **Satu elemen hidup**: stepper siklus beranimasi halus sebagai "denyut" bot, sisanya netral.
 7. **Copy hangat & personal** bikin app terasa hidup.
 
 ## 8. Contoh token siap pakai (CSS)
@@ -125,22 +125,27 @@ Pola konsisten: **background kategori = warna yang sama dengan alpha 0.13**, buk
 ```css
 :root{
   --bg:#FFFFFF;
-  --surface:#F5F5F7;
-  --surface-2:#ECECEF;
-  --border:#E3E3E7;
-  --text:#171717;
-  --text-muted:#6B6B70;
-  --ink:#171717;
+  --surface:#F5F7F9;
+  --surface-2:#ECEFF2;
+  --border:#E3E7EB;
+  --text:#0B0D10;
+  --muted:#646A73;
+  --ink:#0E1013;
 
-  --brand-brown:#B07A4F;
-  --brand-brown-tint:rgba(176,122,79,.14);
-  --accent-green:#1E9E4A;
-  --danger:#E11D48;
+  --brand:#00A37A;            /* emerald, satu-satunya aksen */
+  --brand-text:#0A7A5C;
+  --brand-tint:rgba(0,163,122,.12);
+  --up:#12A150;
+  --up-text:#0A7C3D;
+  --down:#E5484D;
+  --down-text:#C4272C;
+  --danger-fill:#C62B32;
+  --ai:#6366F1;
 
-  --radius-card:20px;
-  --radius-lg:24px;
+  --radius-card:16px;
+  --radius-lg:20px;
   --radius-pill:999px;
-  --shadow-card:0 4px 16px rgba(40,60,110,.10);
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.05);
 
   --font: -apple-system,"system-ui","SF Pro Text","Segoe UI",
           Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -150,5 +155,5 @@ Pola konsisten: **background kategori = warna yang sama dengan alpha 0.13**, buk
 ## 9. Catatan teknis / caveat
 
 - Situs referensi = Expo web; banyak style inline (bukan design token CSS). Nilai di atas di-sample dari elemen nyata.
-- Hero background = **foto**, bukan CSS gradient. Kalau mau gradient hangat serupa, arah: `#F0892E → #E8B98A → #9BB0C9` (oranye → krem → biru langit senja).
-- Angka warna kategori (indigo kalender) di-approximate dari screenshot; verifikasi ulang kalau dipakai presisi.
+- Aksen tunggal = emerald. Elemen hidup (stepper siklus) pakai emerald + animasi halus, tetap di bawah dose cap; jangan tambah warna aksen kedua.
+- Semua pairing teks sudah dicek pakai `contrast-check.py` (skrip di `.claude/skills/antislop-human/`); cek ulang tiap ganti nilai warna.

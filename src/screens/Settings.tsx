@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "../api";
 import type { Theme } from "../theme";
 import type { SettingView, SettingsView, Snapshot } from "../types";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const THEMES: { id: Theme; label: string }[] = [
   { id: "light", label: "Terang" },
@@ -21,12 +28,13 @@ function toText(s: SettingView, v: SettingView["value"]): string | boolean {
 function show(s: SettingView, v: SettingView["value"]): string {
   if (s.type === "boolean") return v ? "ya" : "tidak";
   if (s.type === "list") return (v as string[]).length === 0 ? "kosong" : `${(v as string[]).length} alamat`;
+  if (s.type === "choice") return s.options?.find((o) => o.value === v)?.label ?? String(v);
   return `${(v as number).toLocaleString("id-ID")}${s.unit ? ` ${s.unit}` : ""}`;
 }
 
 /** Draft back to the API value, or an error message. */
 function parse(s: SettingView, d: Exclude<Draft, null>): { value: unknown } | { error: string } {
-  if (s.type === "boolean") return { value: d };
+  if (s.type === "boolean" || s.type === "choice") return { value: d };
   if (s.type === "list") {
     return { value: (d as string).split(/[\s,]+/).map((x) => x.trim()).filter(Boolean) };
   }
@@ -53,9 +61,9 @@ function Field({ s, draft, onDraft }: { s: SettingView; draft: Draft | undefined
   return (
     <div className={`setting${draft !== undefined ? " is-dirty" : ""}`}>
       <div className="setting__text">
-        <label htmlFor={id} className="setting__label">
+        <Label htmlFor={id} className="setting__label">
           {s.label}
-        </label>
+        </Label>
         {s.help && <p className="setting__help">{s.help}</p>}
         <p className="setting__env">
           {resetting
@@ -65,32 +73,46 @@ function Field({ s, draft, onDraft }: { s: SettingView; draft: Draft | undefined
               : `Dari .env (${s.env}).`}
         </p>
         {s.overridden && !resetting && (
-          <button type="button" className="link-btn" onClick={() => onDraft(null)}>
+          <Button type="button" variant="link" className="h-auto justify-start p-0 text-xs" onClick={() => onDraft(null)}>
             Kembalikan ke nilai .env
-          </button>
+          </Button>
         )}
         {resetting && (
-          <button type="button" className="link-btn" onClick={() => onDraft(undefined)}>
+          <Button type="button" variant="link" className="h-auto justify-start p-0 text-xs" onClick={() => onDraft(undefined)}>
             Batal kembalikan
-          </button>
+          </Button>
         )}
       </div>
 
       <div className="setting__control">
         {s.type === "boolean" ? (
-          <input
+          <Switch id={id} checked={current as boolean} onCheckedChange={(v) => set(v)} />
+        ) : s.type === "choice" ? (
+          <ToggleGroup
             id={id}
-            type="checkbox"
-            role="switch"
-            className="switch"
-            checked={current as boolean}
-            onChange={(e) => set(e.target.checked)}
-          />
+            type="single"
+            value={current as string}
+            onValueChange={(v) => v && set(v)}
+            variant="outline"
+            aria-label={s.label}
+            size="sm"
+            className="flex-nowrap justify-end"
+          >
+            {s.options?.map((o) => (
+              <ToggleGroupItem
+                key={o.value}
+                value={o.value}
+                className="px-2 text-xs whitespace-nowrap data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+              >
+                {o.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         ) : s.type === "list" ? (
-          <textarea
+          <Textarea
             id={id}
             rows={3}
-            className="input input--area"
+            className="w-72 max-w-full font-mono text-xs"
             value={current as string}
             placeholder="Alamat mint, satu per baris"
             spellCheck={false}
@@ -98,9 +120,9 @@ function Field({ s, draft, onDraft }: { s: SettingView; draft: Draft | undefined
           />
         ) : (
           <div className="input-unit">
-            <input
+            <Input
               id={id}
-              className="input"
+              className="w-28 text-right"
               type="text"
               inputMode={s.type === "integer" ? "numeric" : "decimal"}
               value={current as string}
@@ -184,9 +206,9 @@ function ConfigEditor() {
       <div className="empty" role="alert">
         <p className="empty__title">Konfigurasi gagal dimuat.</p>
         <p className="muted">{loadError}</p>
-        <button type="button" className="btn btn--secondary" onClick={() => setAttempt((a) => a + 1)}>
+        <Button type="button" variant="secondary" onClick={() => setAttempt((a) => a + 1)}>
           Muat ulang konfigurasi
-        </button>
+        </Button>
       </div>
     );
   }
@@ -201,7 +223,7 @@ function ConfigEditor() {
   return (
     <>
       {view.groups.map((g) => (
-        <section key={g.id} className="card settings-group" aria-labelledby={`group-${g.id}`}>
+        <Card key={g.id} role="region" className="settings-group gap-3 border-0 p-3.5 shadow-none" aria-labelledby={`group-${g.id}`}>
           <div className="settings-group__head">
             <h2 id={`group-${g.id}`} className="card__title">
               {g.label}
@@ -213,7 +235,7 @@ function ConfigEditor() {
               <Field key={s.key} s={s} draft={drafts[s.key]} onDraft={(d) => onDraft(s.key, d)} />
             ))}
           </div>
-        </section>
+        </Card>
       ))}
 
       {(dirty > 0 || problems.length > 0 || savedAt) && (
@@ -233,17 +255,12 @@ function ConfigEditor() {
           </div>
           {dirty > 0 && (
             <div className="savebar__actions">
-              <button
-                type="button"
-                className="btn btn--secondary"
-                onClick={() => (setDrafts({}), setProblems([]))}
-                disabled={saving}
-              >
+              <Button type="button" variant="secondary" onClick={() => (setDrafts({}), setProblems([]))} disabled={saving}>
                 Batalkan
-              </button>
-              <button type="button" className="btn btn--primary" onClick={save} disabled={saving}>
+              </Button>
+              <Button type="button" onClick={save} disabled={saving}>
                 {saving ? "Menyimpan..." : "Simpan perubahan"}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -265,16 +282,9 @@ interface Props {
 export function SettingsScreen(p: Props) {
   const snap = p.snapshot;
   return (
-    <div className="screen screen--narrow">
-      <header className="page-head">
-        <div>
-          <h1 className="page-title">Pengaturan</h1>
-          <p className="page-sub">Perubahan tersimpan di database dan menimpa nilai di backend/.env.</p>
-        </div>
-      </header>
-
+    <div className="settings">
       <div className="settings-top">
-        <section className="tile" aria-labelledby="opening-title">
+        <Card role="region" className="gap-2 border-0 p-3.5 shadow-none" aria-labelledby="opening-title">
           <h2 id="opening-title" className="tile__label">
             Buka posisi baru
           </h2>
@@ -283,45 +293,46 @@ export function SettingsScreen(p: Props) {
               ? "Sedang dijeda. Posisi yang ada tetap dikelola dan ditutup sesuai aturan."
               : "Aktif. Bot boleh membuka posisi kalau ada kandidat yang lolos."}
           </p>
-          <button
+          <Button
             type="button"
-            className={`btn ${p.paused ? "btn--primary" : "btn--secondary-on-surface"}`}
+            variant={p.paused ? "default" : "outline"}
             onClick={p.onTogglePause}
             disabled={p.pauseBusy}
+            className="justify-self-start"
           >
             {p.pauseBusy ? "Menyimpan..." : p.paused ? "Lanjutkan buka posisi" : "Jeda buka posisi baru"}
-          </button>
+          </Button>
           {p.pauseError && (
             <p className="error-text" role="alert">
               Gagal menyimpan: {p.pauseError}
             </p>
           )}
-        </section>
+        </Card>
 
-        <section className="tile" aria-labelledby="theme-title">
+        <Card role="region" className="gap-2 border-0 p-3.5 shadow-none" aria-labelledby="theme-title">
           <h2 id="theme-title" className="tile__label">
             Tampilan
           </h2>
-          <div className="segmented segmented--radio segmented--on-surface" role="radiogroup" aria-labelledby="theme-title">
+          <ToggleGroup
+            type="single"
+            value={p.theme}
+            onValueChange={(v) => v && p.onTheme(v as Theme)}
+            variant="outline"
+            aria-labelledby="theme-title"
+            className="justify-start"
+          >
             {THEMES.map((t) => (
-              <label key={t.id}>
-                <input
-                  type="radio"
-                  name="theme"
-                  value={t.id}
-                  checked={p.theme === t.id}
-                  onChange={() => p.onTheme(t.id)}
-                />
-                <span>{t.label}</span>
-              </label>
+              <ToggleGroupItem key={t.id} value={t.id} className="px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                {t.label}
+              </ToggleGroupItem>
             ))}
-          </div>
-        </section>
+          </ToggleGroup>
+        </Card>
       </div>
 
       <ConfigEditor />
 
-      <section className="card settings-group" aria-labelledby="fixed-title">
+      <Card role="region" className="settings-group gap-3 border-0 p-3.5 shadow-none" aria-labelledby="fixed-title">
         <div className="settings-group__head">
           <h2 id="fixed-title" className="card__title">
             Hanya dari backend/.env
@@ -346,7 +357,7 @@ export function SettingsScreen(p: Props) {
             <dd className="mono">{snap.wallet}</dd>
           </div>
         </dl>
-      </section>
+      </Card>
     </div>
   );
 }

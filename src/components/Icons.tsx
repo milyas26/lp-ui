@@ -87,3 +87,15 @@ export const IconPlay = () => (
     <path d="M7 5l8 5-8 5V5z" />
   </Svg>
 );
+
+export const IconFullscreen = () => (
+  <Svg size={18}>
+    <path d="M4 8V4h4M16 8V4h-4M4 12v4h4M16 12v4h-4" />
+  </Svg>
+);
+
+export const IconExitFullscreen = () => (
+  <Svg size={18}>
+    <path d="M8 4v4H4M12 4v4h4M8 16v-4H4M12 16v-4h4" />
+  </Svg>
+);
